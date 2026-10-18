@@ -17,12 +17,59 @@
   const plate = $("plate");
   const letterBackdrop = $("letterBackdrop");
   const closeLetterButton = $("closeLetterButton");
+  const passwordGate = $("passwordGate");
+  const answerInput = $("answerInput");
+  const submitAnswerButton = $("submitAnswerButton");
+  const passwordError = $("passwordError");
   const layers = [$("tierBottom"), $("tierMiddle"), $("tierTop")];
   const sparkles = document.querySelectorAll(".twinkle");
+
+  const correctAnswer = "13/10/2024";
 
   let surpriseStarted = false;
   let candleIsOut = false;
   let audioContext = null;
+
+  function normalizeAnswer(value) {
+    return String(value).trim().replace(/[.-]/g, "/");
+  }
+
+  function setGateError(message) {
+    passwordError.textContent = message;
+    passwordError.setAttribute("aria-live", "assertive");
+    answerInput.setAttribute("aria-invalid", "true");
+  }
+
+  function clearGateError() {
+    passwordError.textContent = "";
+    answerInput.removeAttribute("aria-invalid");
+  }
+
+  function unlockBirthday() {
+    document.body.classList.remove("page-locked");
+    document.body.classList.add("page-unlocked");
+    passwordGate.classList.add("dismissed");
+    answerInput.value = "";
+    clearGateError();
+  }
+
+  function validatePasswordAnswer() {
+    const trimmedAnswer = normalizeAnswer(answerInput.value);
+    if (!trimmedAnswer) {
+      setGateError("أرجو كتابة التاريخ أولاً 💕");
+      answerInput.focus();
+      return;
+    }
+
+    if (trimmedAnswer !== correctAnswer) {
+      setGateError("المعلومة اللي كتبتيها غلط ي مشمش، جرّبي تاني ي صغنن 💗");
+      answerInput.focus();
+      answerInput.select();
+      return;
+    }
+
+    unlockBirthday();
+  }
 
   const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
@@ -164,6 +211,14 @@
     floatHearts(10);
   }
 
+  submitAnswerButton.addEventListener("click", validatePasswordAnswer);
+  answerInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      validatePasswordAnswer();
+    }
+  });
+
   startButton.addEventListener("click", startSurprise);
   wishButton.addEventListener("click", blowOutCandle);
   relightButton.addEventListener("click", relightCandle);
@@ -174,4 +229,7 @@
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !letterBackdrop.hidden) closeLetter();
   });
+
+  document.body.classList.add("page-locked");
+  answerInput.focus();
 })();
